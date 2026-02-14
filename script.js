@@ -1,13 +1,20 @@
 (function initTheme() {
-  const stored = localStorage.getItem('cw-theme');
+  const storedTheme = localStorage.getItem('cw-theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme = stored || (prefersDark ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', theme);
+  const activeTheme = storedTheme || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', activeTheme);
 })();
 
 function setTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('cw-theme', theme);
+}
+
+function setStatus(el, message, isError = false) {
+  if (!el) return;
+  el.textContent = message;
+  el.classList.toggle('error', isError);
+  el.classList.toggle('success', !isError);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,25 +23,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const nav = document.querySelector('header nav');
 
   if (themeButton) {
-    const sync = () => {
+    const syncThemeLabel = () => {
       const dark = document.documentElement.getAttribute('data-theme') === 'dark';
       themeButton.textContent = dark ? '☀️' : '🌙';
       themeButton.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
     };
-    sync();
+    syncThemeLabel();
     themeButton.addEventListener('click', () => {
       const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       setTheme(current);
-      sync();
+      syncThemeLabel();
     });
   }
 
   if (navToggle && nav) {
     navToggle.addEventListener('click', () => {
       nav.classList.toggle('open');
-      const expanded = nav.classList.contains('open');
-      navToggle.setAttribute('aria-expanded', String(expanded));
+      navToggle.setAttribute('aria-expanded', String(nav.classList.contains('open')));
     });
+    nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => nav.classList.remove('open')));
   }
 
   const reveals = [...document.querySelectorAll('.reveal')];
@@ -47,28 +54,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     }, { threshold: 0.15 });
-    reveals.forEach((el) => io.observe(el));
+    reveals.forEach((node) => io.observe(node));
   } else {
-    reveals.forEach((el) => el.classList.add('visible'));
+    reveals.forEach((node) => node.classList.add('visible'));
   }
 
   document.querySelectorAll('[data-buy-direct]').forEach((button) => {
     button.addEventListener('click', async (event) => {
       event.preventDefault();
-      const status = document.querySelector('[data-buy-status]');
+      const status = button.closest('section, article, .card')?.querySelector('[data-buy-status]') || document.querySelector('[data-buy-status]');
       button.setAttribute('aria-busy', 'true');
-      if (status) status.textContent = 'Connecting to secure checkout...';
+      setStatus(status, 'Connecting to secure checkout...');
+
       try {
+        const emailField = document.querySelector('[data-checkout-email]');
+        const payload = {
+          source: window.location.pathname,
+          customer_email: emailField?.value?.trim() || undefined
+        };
+
         const response = await fetch('/.netlify/functions/create-checkout-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ source: window.location.pathname })
+          body: JSON.stringify(payload)
         });
         const data = await response.json();
         if (!response.ok || !data.url) throw new Error(data.error || 'Unable to start checkout.');
         window.location.href = data.url;
       } catch (error) {
-        if (status) status.textContent = error.message;
+        setStatus(status, error.message || 'Checkout unavailable right now.', true);
       } finally {
         button.setAttribute('aria-busy', 'false');
       }
@@ -83,8 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
       event.preventDefault();
       const email = lookupForm.querySelector('input[name="email"]').value.trim();
       if (!email) return;
-      status.textContent = 'Looking up licenses...';
+
+      setStatus(status, 'Checking for licenses...');
       results.innerHTML = '';
+
       try {
         const response = await fetch('/.netlify/functions/lookup-license', {
           method: 'POST',
@@ -92,29 +108,55 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({ email })
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Unable to process request.');
-        if (!data.found || !data.licenses.length) {
-          status.textContent = 'If a license exists for that email, it will appear here.';
+
+        if (response.status === 429) throw new Error(data.error || 'Request limit reached.');
+        if (!response.ok) throw new Error('Request unavailable, please try again soon.');
+
+        if (!data.found || !Array.isArray(data.licenses) || data.licenses.length === 0) {
+          setStatus(status, data.message || 'If a matching license exists, it has been returned.');
           return;
         }
-        status.textContent = 'License(s) found.';
+
+        setStatus(status, `Found ${data.licenses.length} license record(s).`);
         const list = document.createElement('ul');
         data.licenses.forEach((item) => {
           const li = document.createElement('li');
-          li.innerHTML = `<strong>${item.order_id}</strong><br><code>${item.license_key}</code>`;
+          li.innerHTML = `<strong>${item.product || 'CoolAutoSorter'}</strong> · ${item.order_id}<br><code>${item.license_key}</code>`;
           list.appendChild(li);
         });
         results.appendChild(list);
       } catch (error) {
-        status.textContent = error.message;
+        setStatus(status, error.message, true);
       }
     });
   }
 
-  const successBox = document.querySelector('[data-success-session]');
-  if (successBox) {
-    const params = new URLSearchParams(window.location.search);
-    const sessionId = params.get('session_id');
-    if (sessionId) successBox.textContent = `Checkout session: ${sessionId}`;
+  const updatesForm = document.querySelector('[data-updates-form]');
+  if (updatesForm) {
+    const updatesStatus = document.querySelector('[data-updates-status]');
+    updatesForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const email = updatesForm.querySelector('input[name="email"]').value.trim();
+      setStatus(updatesStatus, 'Submitting...');
+      try {
+        const response = await fetch('/.netlify/functions/subscribe-updates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Unable to subscribe right now.');
+        setStatus(updatesStatus, 'Thanks — you are on the CoolClipboard updates list.');
+        updatesForm.reset();
+      } catch (error) {
+        setStatus(updatesStatus, error.message, true);
+      }
+    });
+  }
+
+  const successSession = document.querySelector('[data-success-session]');
+  if (successSession) {
+    const sessionId = new URLSearchParams(window.location.search).get('session_id');
+    if (sessionId) successSession.textContent = `Order reference: ${sessionId}`;
   }
 });
