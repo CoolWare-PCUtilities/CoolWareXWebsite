@@ -3,81 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoolWareX | Safe & Reliable Software</title>
-  <meta name="description" content="CoolWareX builds premium PC utilities with a lightweight, reliable, no-subscription approach.">
-  <link rel="stylesheet" href="./styles.css">
+  <title>CoolWareX | Safe, Reliable PC Utilities</title>
+  <meta name="description" content="CoolWareX builds safe, reliable PC utilities with no bloat. Buy CoolAutoSorter for $14.99 lifetime, or download the trial.">
+  <meta property="og:title" content="CoolWareX | Safe, reliable PC utilities—no bloat.">
+  <meta property="og:description" content="Buy CoolAutoSorter lifetime for $14.99, or start with a free trial.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://coolwarex.netlify.app/">
+  <meta property="og:image" content="/CoolWareXlogo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CoolWareX">
+  <meta name="twitter:description" content="Safe, reliable PC utilities—no bloat.">
+  <link rel="icon" href="/CoolWareXlogo.png">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "CoolWareX",
+      "url": "https://coolwarex.netlify.app",
+      "email": "coolwarex@proton.me",
+      "sameAs": ["https://www.facebook.com/CoolWareX"]
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "CoolAutoSorter",
+      "brand": {"@type": "Brand", "name": "CoolWareX"},
+      "description": "Lightweight desktop sorting automation utility.",
+      "offers": {"@type": "Offer", "price": "14.99", "priceCurrency": "USD", "availability": "https://schema.org/InStock"}
+    }
+  </script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="./index.html">
-        <img src="./CoolWareXlogo.png" alt="CoolWareX logo">
-        <span>CoolWareX<small>Safe &amp; Reliable Software</small></span>
-      </a>
-      <nav aria-label="Main navigation">
-        <ul>
-          <li><a class="active" href="./index.html">Home</a></li>
-          <li><a href="./products/index.html">Products</a></li>
-          <li><a href="./support/index.html">Support</a></li>
-          <li><a href="./legal/index.html">Legal</a></li>
-        </ul>
-      </nav>
+      <a class="brand" href="/index.html"><img src="/CoolWareXlogo.png" alt="CoolWareX logo"><span>CoolWareX<small>Safe &amp; Reliable Software</small></span></a>
+      <div class="nav-wrap">
+        <button class="icon-btn nav-toggle" data-nav-toggle aria-label="Toggle navigation" aria-expanded="false">☰</button>
+        <nav aria-label="Main navigation">
+          <ul>
+            <li><a class="active" href="/index.html">Home</a></li>
+            <li><a href="/products/index.html">Products</a></li>
+            <li><a href="/support/index.html">Support</a></li>
+            <li><a href="/legal/index.html">Legal</a></li>
+          </ul>
+        </nav>
+        <button class="icon-btn" data-theme-toggle aria-label="Toggle theme">🌙</button>
+      </div>
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <section class="container hero">
-      <div>
-        <h1>Premium PC utilities that quietly keep your system clean.</h1>
-        <p>CoolWareX builds focused, lightweight software with reliability first—no bloat, no noise, and no subscription pressure. Just practical tools designed for daily use.</p>
-        <div class="trust-signals">
+      <div class="reveal">
+        <span class="eyebrow">2026-ready utility software</span>
+        <h1>Safe, reliable PC utilities—no bloat.</h1>
+        <p class="lead">CoolWareX builds focused tools that stay fast, offline-friendly, and easy to trust. Our current flagship is CoolAutoSorter: one payment, lifetime license, and direct support.</p>
+        <div class="badge-row">
           <span class="badge">One-time purchase</span>
-          <span class="badge">Lifetime license</span>
-          <span class="badge">Built for daily use</span>
-          <span class="badge">Support email listed</span>
+          <span class="badge">Offline-friendly</span>
+          <span class="badge">Lightweight install</span>
+          <span class="badge">No ads</span>
+          <span class="badge">Straightforward support</span>
         </div>
         <div class="btn-row">
-          <a class="btn btn-primary" href="https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600" target="_blank" rel="noopener">Buy CoolAutoSorter</a>
-          <a class="btn btn-secondary" href="./products/index.html">View Products</a>
+          <a href="#" class="btn btn-primary" data-buy-direct>Buy CoolAutoSorter</a>
+          <a class="btn btn-secondary" href="/products/index.html#trial">Download Trial</a>
+          <a class="btn btn-secondary" href="https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600" target="_blank" rel="noopener">Buy via Stripe</a>
         </div>
+        <p class="muted" data-buy-status aria-live="polite"></p>
       </div>
-      <div class="card">
-        <img src="./CoolWareXlogo.png" alt="CoolWareX logo mark" style="width:68px;height:68px;border-radius:10px;">
-        <h2 style="margin-top:0.9rem;">CoolAutoSorter</h2>
-        <p class="price">$14.99 lifetime</p>
-        <p>Automate repetitive desktop sorting workflows with a clean interface and conservative system usage.</p>
-        <div class="badges">
-          <span class="badge">Lifetime License</span>
-          <span class="badge">No Subscription</span>
-        </div>
-      </div>
+      <aside class="card hero-card reveal">
+        <h2>CoolAutoSorter</h2>
+        <p class="price">$14.99</p>
+        <p>Lifetime license. No subscription. Built for users who value reliable automation and clean workflows.</p>
+        <ul>
+          <li>Fast startup and low background usage</li>
+          <li>Stable sorting rules for routine tasks</li>
+          <li>Signed offline-verifiable license keys</li>
+        </ul>
+      </aside>
     </section>
 
-    <section class="container" style="margin-top:2rem;">
-      <h2>Why CoolWareX</h2>
+    <section class="container reveal">
+      <h2>How it works</h2>
       <div class="grid-3">
-        <article class="card"><h3>Reliability over hype</h3><p>Our utilities are designed with predictable behavior and clear workflows, not inflated promises.</p></article>
-        <article class="card"><h3>Lean by design</h3><p>Small footprint apps with straightforward controls and minimal background overhead.</p></article>
-        <article class="card"><h3>Direct support</h3><p>Need help? Reach us directly at <a href="mailto:coolwarex@proton.me">coolwarex@proton.me</a>.</p></article>
+        <article class="card"><h3>1. Purchase securely</h3><p>Use direct checkout from this site (or our Stripe fallback) to purchase your lifetime license.</p></article>
+        <article class="card"><h3>2. Receive your key</h3><p>After checkout, your signed key is generated and delivered by email automatically.</p></article>
+        <article class="card"><h3>3. Activate once</h3><p>Paste your key in the app to unlock full lifetime access offline.</p></article>
       </div>
     </section>
 
-    <section class="container" style="margin-top:2rem;">
-      <h2>Product Spotlight</h2>
+    <section class="container reveal">
+      <h2>Why CoolWareX</h2>
       <div class="grid-2">
-        <article class="card product-card">
-          <h3>CoolAutoSorter</h3>
-          <p class="price">$14.99 one-time</p>
-          <p>A premium utility for keeping common sorting tasks organized without recurring fees.</p>
-          <a class="btn btn-primary" href="https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600" target="_blank" rel="noopener">Buy CoolAutoSorter</a>
-        </article>
-        <article class="card">
-          <h3>Screenshot Preview</h3>
-          <div class="screenshot-item" data-src="./assets/screenshots/coolautosorter-1.png">
-            <img alt="CoolAutoSorter Main Dashboard screenshot">
-            <div class="placeholder"><div class="placeholder-icon">🖥️</div><strong>Main Dashboard</strong></div>
-          </div>
-        </article>
+        <article class="card"><h3>Built for confidence</h3><p>No cluttered suites, no forced cloud dependency, no manipulative upsells.</p></article>
+        <article class="card"><h3>Human support</h3><p>Contact us at <a href="mailto:coolwarex@proton.me">coolwarex@proton.me</a>. We keep support practical and clear.</p></article>
+      </div>
+    </section>
+
+    <section class="container reveal">
+      <h2>Testimonials (placeholder)</h2>
+      <div class="grid-3">
+        <article class="card"><p><strong>Placeholder:</strong> Customer testimonial will appear here after verified feedback collection.</p></article>
+        <article class="card"><p><strong>Placeholder:</strong> Customer testimonial will appear here after verified feedback collection.</p></article>
+        <article class="card"><p><strong>Placeholder:</strong> Customer testimonial will appear here after verified feedback collection.</p></article>
       </div>
     </section>
   </main>
@@ -87,7 +120,6 @@
       <p>Support: <a href="mailto:coolwarex@proton.me">coolwarex@proton.me</a> · Facebook: <a href="https://www.facebook.com/CoolWareX" target="_blank" rel="noopener">facebook.com/CoolWareX</a></p>
     </div>
   </footer>
-
-  <script src="./script.js"></script>
+  <script src="/script.js"></script>
 </body>
 </html>

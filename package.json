@@ -1,0 +1,11 @@
+{
+  "name": "coolwarex-website",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
