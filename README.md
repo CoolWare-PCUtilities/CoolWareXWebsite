@@ -12,7 +12,7 @@ Static Netlify site + Netlify Functions for direct sales of **CoolAutoSorter**.
    ```bash
    npm install
    ```
-2. Set env vars in `.env` (or Netlify UI).
+2. Set env vars in `.env` for local dev, and in the Netlify UI for deployed functions.
 3. Run locally:
    ```bash
    npx netlify dev
@@ -23,16 +23,26 @@ Static Netlify site + Netlify Functions for direct sales of **CoolAutoSorter**.
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_PRICE_ID`
-- `LICENSE_SIGNING_PRIVATE_KEY_B64`
+- `LICENSE_SIGNING_SSH_PRIVATE_KEY_B64`
 - `EMAIL_PROVIDER` (`resend` or `sendgrid`)
 - `EMAIL_PROVIDER_API_KEY`
 - `EMAIL_FROM` (e.g. `CoolWareX <coolwarex@proton.me>`)
 - `SUPPORT_EMAIL` (`coolwarex@proton.me`)
 
-### `LICENSE_SIGNING_PRIVATE_KEY_B64` format
-Ed25519 private key base64. Two formats are accepted:
-- 32-byte raw private key bytes (base64 encoded)
-- PKCS8 DER private key bytes (base64 encoded)
+### `LICENSE_SIGNING_SSH_PRIVATE_KEY_B64` format
+This value is **base64 of the raw bytes of your OpenSSH private key file** (for example `~/.ssh/id_ed25519`).
+
+Example:
+```bash
+base64 < ~/.ssh/id_ed25519 | tr -d '\n'
+```
+
+At runtime, functions parse this OpenSSH key, derive the Ed25519 signing secret, and expose the raw public key as base64 via `/.netlify/functions/debug-license-key` in non-production (or with `DEBUG_TOKEN`).
+
+Expected public key for this app:
+- `1yYXI2GP9UUbYGozDUGof1KRQyx8WOeNeKx5aW8cgq0=`
+
+Use the debug endpoint response field `derivedPublicKeyB64` to confirm it matches.
 
 License key output format:
 
@@ -58,3 +68,11 @@ Payload fields:
    - fulfillment is stored idempotently by `session_id`
    - license email is sent
    - lookup by purchase email returns license
+
+
+## Netlify environment variable scope note
+Do **not** rely on `netlify.toml` environment variables for function runtime secrets. Set function secrets in the Netlify UI with **Functions** scope (Site configuration → Environment variables), including:
+- `LICENSE_SIGNING_SSH_PRIVATE_KEY_B64`
+- `STRIPE_WEBHOOK_SECRET`
+- `EMAIL_PROVIDER_API_KEY`
+- `DEBUG_TOKEN` (optional)

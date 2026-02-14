@@ -1,5 +1,6 @@
 const crypto = require('crypto');
-const { sha256Hex, normalizeEmail, buildLicensePayload, signLicense, maskLicenseKey } = require('./lib/license');
+const { sha256Hex, normalizeEmail, maskLicenseKey } = require('./lib/license');
+const { signLicensePayload } = require('./_lib/licenseSigning');
 const { getLicenseStore, saveFulfillment } = require('./lib/store');
 const { sendLicenseEmail } = require('./lib/email');
 
@@ -57,8 +58,14 @@ exports.handler = async function handler(event) {
   const existing = await store.get(`session:${sessionId}`, { type: 'json' });
   if (existing) return { statusCode: 200, body: 'Already fulfilled' };
 
-  const payload = buildLicensePayload({ purchaserEmail: email, orderId: sessionId });
-  const licenseKey = signLicense(payload);
+  const payload = {
+    product: 'CoolAutoSorter',
+    license_type: 'lifetime',
+    issued_at: new Date().toISOString(),
+    order_id: sessionId,
+    purchaser_email_hash: sha256Hex(email)
+  };
+  const licenseKey = signLicensePayload(payload);
   const record = {
     order_id: sessionId,
     session_id: sessionId,
