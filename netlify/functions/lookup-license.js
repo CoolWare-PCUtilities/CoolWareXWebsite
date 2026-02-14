@@ -1,39 +1,54 @@
-const { sha256Hex } = require('./lib/license');
-const { getLicenseStore } = require('./lib/store');
+const { sha256Hex, normalizeEmail } = require('./lib/license');
+const { getLicenseStore, getRateLimitStore } = require('./lib/store');
 
 const WINDOW_MS = 60 * 60 * 1000;
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS = 10;
+const SAFE_MESSAGE = 'If a matching license exists, it has been returned.';
 
 exports.handler = async function handler(event) {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
 
-  const ip = event.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
-  const body = event.body ? JSON.parse(event.body) : {};
-  const email = String(body.email || '').trim().toLowerCase();
-  if (!email || !email.includes('@')) return { statusCode: 400, body: JSON.stringify({ error: 'Invalid request' }) };
-
-  const store = getLicenseStore();
-  const limiterKey = `ratelimit:${sha256Hex(`${ip}:${email}`)}`;
-  const now = Date.now();
-  const limiter = await store.get(limiterKey, { type: 'json' }) || { count: 0, started_at: now };
-  const withinWindow = now - limiter.started_at < WINDOW_MS;
-  const count = withinWindow ? limiter.count + 1 : 1;
-  const startedAt = withinWindow ? limiter.started_at : now;
-  await store.set(limiterKey, JSON.stringify({ count, started_at: startedAt }));
-
-  if (count > MAX_ATTEMPTS) {
-    return { statusCode: 429, body: JSON.stringify({ error: 'Too many requests. Please try later.' }) };
+  let body;
+  try {
+    body = event.body ? JSON.parse(event.body) : {};
+  } catch {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid request' }) };
   }
 
+  const ip = (event.headers['x-forwarded-for'] || 'unknown').split(',')[0].trim();
+  const email = normalizeEmail(body.email);
+
+  const rateStore = getRateLimitStore();
+  const rateKey = `lookup:${sha256Hex(ip)}`;
+  const now = Date.now();
+  const current = (await rateStore.get(rateKey, { type: 'json' })) || { count: 0, started_at: now };
+  const withinWindow = now - current.started_at < WINDOW_MS;
+  const next = { count: withinWindow ? current.count + 1 : 1, started_at: withinWindow ? current.started_at : now };
+  await rateStore.set(rateKey, JSON.stringify(next));
+
+  if (next.count > MAX_ATTEMPTS) {
+    return { statusCode: 429, body: JSON.stringify({ error: 'Request limit reached. Please try again later.' }) };
+  }
+
+  if (!email || !email.includes('@')) {
+    return { statusCode: 200, body: JSON.stringify({ found: false, licenses: [], message: SAFE_MESSAGE }) };
+  }
+
+  const store = getLicenseStore();
   const emailHash = sha256Hex(email);
   const list = await store.list({ prefix: `email:${emailHash}:` });
-  const items = await Promise.all(list.blobs.map(async (blob) => store.get(blob.key, { type: 'json' })));
+  const items = await Promise.all(list.blobs.map((blob) => store.get(blob.key, { type: 'json' })));
+  const licenses = items
+    .filter(Boolean)
+    .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
+    .slice(0, 5);
 
   return {
     statusCode: 200,
     body: JSON.stringify({
-      found: items.length > 0,
-      licenses: items.filter(Boolean)
+      found: licenses.length > 0,
+      licenses,
+      message: SAFE_MESSAGE
     })
   };
 };
