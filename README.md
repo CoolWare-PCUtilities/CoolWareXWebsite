@@ -1,6 +1,6 @@
 # CoolWareX Website
 
-Static Netlify site + Netlify Functions for direct sales of **CoolAutoSorter**.
+Static Netlify site + Netlify Functions for **CoolAutoSorter** fulfillment and support flows.
 
 ## Stack
 - Static HTML/CSS/vanilla JS
@@ -20,9 +20,7 @@ Static Netlify site + Netlify Functions for direct sales of **CoolAutoSorter**.
 
 ## Required environment variables
 - `SITE_URL` (e.g. `https://coolwarex.netlify.app`)
-- `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
-- `STRIPE_PRICE_ID`
 - `LICENSE_SIGNING_SSH_PRIVATE_KEY_B64`
 - `EMAIL_PROVIDER` (`resend` or `sendgrid`)
 - `EMAIL_PROVIDER_API_KEY`
@@ -52,17 +50,16 @@ Payload fields:
 - `product` (`CoolAutoSorter`)
 - `license_type` (`lifetime`)
 - `issued_at` (ISO timestamp)
-- `order_id` (Stripe checkout session id)
+- `order_id` (Stripe Payment Link checkout session id)
 - `purchaser_email_hash` (`sha256(lowercase(trim(email)))`)
 
 ## Stripe test mode flow
-1. Create a Stripe product/price for **CoolAutoSorter** at **$14.99 one-time**.
-2. Set `STRIPE_PRICE_ID` to that price.
-3. Configure webhook endpoint:
+1. Create/update the Stripe Payment Link used on the site for **CoolAutoSorter** at **$14.99 one-time**.
+2. Configure webhook endpoint:
    - URL: `https://<site>/.netlify/functions/stripe-webhook`
    - Event: `checkout.session.completed`
-4. Complete a test purchase with a Stripe test card from site checkout.
-5. Confirm:
+3. Complete a test purchase with a Stripe test card from the Payment Link.
+4. Confirm:
    - Redirect to `/success`
    - webhook returns `200`
    - fulfillment is stored idempotently by `session_id`

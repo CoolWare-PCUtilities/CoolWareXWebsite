@@ -59,36 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
     reveals.forEach((node) => node.classList.add('visible'));
   }
 
-  document.querySelectorAll('[data-buy-direct]').forEach((button) => {
-    button.addEventListener('click', async (event) => {
-      event.preventDefault();
-      const status = button.closest('section, article, .card')?.querySelector('[data-buy-status]') || document.querySelector('[data-buy-status]');
-      button.setAttribute('aria-busy', 'true');
-      setStatus(status, 'Connecting to secure checkout...');
-
-      try {
-        const emailField = document.querySelector('[data-checkout-email]');
-        const payload = {
-          source: window.location.pathname,
-          customer_email: emailField?.value?.trim() || undefined
-        };
-
-        const response = await fetch('/.netlify/functions/create-checkout-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await response.json();
-        if (!response.ok || !data.url) throw new Error(data.error || 'Unable to start checkout.');
-        window.location.href = data.url;
-      } catch (error) {
-        setStatus(status, error.message || 'Checkout unavailable right now.', true);
-      } finally {
-        button.setAttribute('aria-busy', 'false');
-      }
-    });
-  });
-
   const lookupForm = document.querySelector('[data-license-lookup-form]');
   if (lookupForm) {
     const status = document.querySelector('[data-lookup-status]');
