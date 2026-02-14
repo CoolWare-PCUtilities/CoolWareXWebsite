@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://coolwarex.netlify.app/sitemap.xml
