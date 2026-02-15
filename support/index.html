@@ -14,7 +14,7 @@
   <meta name="twitter:title" content="Support | CoolWareX">
   <meta name="twitter:description" content="Need help with CoolAutoSorter? Contact CoolWareX support.">
   <link rel="icon" type="image/png" href="/CoolWareXlogo.png">
-  <script>(function(){try{var t=localStorage.getItem('cw-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+  <script>(function(){try{var t=localStorage.getItem('cw-theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t||d);}catch(e){}})();</script>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -32,7 +32,7 @@
       </article>
       <article class="card">
         <h2>Quick links</h2>
-        <div class="btn-row"><a class="btn btn-primary" href="https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600" target="_blank" rel="noopener noreferrer">Buy CoolAutoSorter</a><a class="btn btn-secondary" href="/downloads/index.html">Download Trial</a></div>
+        <div class="btn-row"><a class="btn btn-primary" href="https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600" data-buy-link target="_blank" rel="noopener noreferrer">Buy CoolAutoSorter</a><a class="btn btn-secondary" href="https://github.com/CoolWare-PCUtilities/CoolAutoSorter/releases" data-trial-download target="_blank" rel="noopener noreferrer">Download Trial</a></div>
       </article>
     </div>
   </section>
@@ -40,13 +40,14 @@
     <h2>FAQ</h2>
     <div class="grid-2">
       <article class="card"><h3>Refunds policy</h3><p>Refunds are reviewed case-by-case. Contact support with your purchase email and order details.</p></article>
-      <article class="card"><h3>Trial availability</h3><p>The trial build is provided from the downloads page. If a platform build is not ready yet, that page will clearly say “Trial coming soon”.</p></article>
+      <article class="card"><h3>Trial availability</h3><p>The trial build is provided via the official GitHub Releases page so the download link always resolves.</p></article>
       <article class="card"><h3>Licensing basics</h3><p>CoolAutoSorter uses one-time lifetime licensing for the purchased version. No recurring subscription.</p></article>
       <article class="card"><h3>Need additional help?</h3><p>Share your OS version and issue description at <a href="mailto:coolwarex@proton.me">coolwarex@proton.me</a> for faster troubleshooting.</p></article>
     </div>
   </section>
 </main>
 <footer class="site-footer"><div class="container footer-links"><span><a href="mailto:coolwarex@proton.me">coolwarex@proton.me</a></span><span><a href="https://www.facebook.com/CoolWareX" target="_blank" rel="noopener">Facebook</a></span><span><a href="/legal/index.html">Legal hub</a></span></div></footer>
+<script src="/config.js"></script>
 <script src="/script.js"></script>
 </body>
 </html>

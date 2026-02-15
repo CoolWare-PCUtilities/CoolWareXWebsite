@@ -5,11 +5,12 @@
   <title>Checkout Canceled | CoolWareX</title>
   <meta name="description" content="Checkout canceled safely. Retry anytime.">
   <link rel="icon" type="image/png" href="/CoolWareXlogo.png">
-  <script>(function(){try{var t=localStorage.getItem('cw-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+  <script>(function(){try{var t=localStorage.getItem('cw-theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t||d);}catch(e){}})();</script>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<main class="container"><section><div class="card"><h1>Checkout canceled</h1><p>No charge was made. You can complete your purchase at any time.</p><div class="btn-row"><a class="btn btn-primary" href="https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600" target="_blank" rel="noopener noreferrer">Buy CoolAutoSorter</a><a class="btn btn-secondary" href="/downloads/index.html">Download Trial</a></div></div></section></main>
+<main class="container"><section><div class="card"><h1>Checkout canceled</h1><p>No charge was made. You can complete your purchase at any time.</p><div class="btn-row"><a class="btn btn-primary" href="https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600" data-buy-link target="_blank" rel="noopener noreferrer">Buy CoolAutoSorter</a><a class="btn btn-secondary" href="https://github.com/CoolWare-PCUtilities/CoolAutoSorter/releases" data-trial-download target="_blank" rel="noopener noreferrer">Download Trial</a></div></div></section></main>
+<script src="/config.js"></script>
 <script src="/script.js"></script>
 </body>
 </html>
