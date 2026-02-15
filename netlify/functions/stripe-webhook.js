@@ -8,28 +8,57 @@ const { markProcessedEvent } = require('./lib/idempotency');
 const { isValidEmail } = require('./lib/validation');
 const { logInfo, logError } = require('./lib/logging');
 
-function verifyStripeSignature(rawBody, signature, secret, toleranceSeconds = 300) {
-  if (!signature || !secret) return false;
+function parseStripeSignature(signatureHeader) {
+  if (!signatureHeader) return { timestamp: null, v1Signatures: [] };
 
-  const pieces = signature.split(',').map((item) => item.trim());
-  const timestamp = pieces.find((part) => part.startsWith('t='))?.slice(2);
-  const signatures = pieces.filter((part) => part.startsWith('v1=')).map((part) => part.slice(3));
-  if (!timestamp || signatures.length === 0) return false;
+  const parts = String(signatureHeader)
+    .split(',')
+    .map((piece) => piece.trim())
+    .filter(Boolean);
 
-  const timestampNumber = Number(timestamp);
-  if (!Number.isFinite(timestampNumber)) return false;
+  let timestamp = null;
+  const v1Signatures = [];
+
+  for (const part of parts) {
+    const separatorIndex = part.indexOf('=');
+    if (separatorIndex <= 0) continue;
+    const key = part.slice(0, separatorIndex);
+    const value = part.slice(separatorIndex + 1);
+
+    if (key === 't') {
+      timestamp = Number(value);
+      continue;
+    }
+
+    if (key === 'v1' && value) {
+      v1Signatures.push(value);
+    }
+  }
+
+  return { timestamp, v1Signatures };
+}
+
+function verifyStripeSignature(rawBodyBuffer, signatureHeader, secret, toleranceSeconds = 300) {
+  if (!signatureHeader || !secret || !Buffer.isBuffer(rawBodyBuffer)) return false;
+
+  const { timestamp, v1Signatures } = parseStripeSignature(signatureHeader);
+  if (!Number.isFinite(timestamp) || v1Signatures.length === 0) return false;
 
   const nowSeconds = Math.floor(Date.now() / 1000);
-  if (Math.abs(nowSeconds - timestampNumber) > toleranceSeconds) return false;
+  if (Math.abs(nowSeconds - timestamp) > toleranceSeconds) return false;
 
-  const expected = crypto
+  const expectedHex = crypto
     .createHmac('sha256', secret)
-    .update(`${timestamp}.${rawBody}`)
+    .update(`${timestamp}.`)
+    .update(rawBodyBuffer)
     .digest('hex');
 
-  return signatures.some((candidate) => {
+  const expectedBuffer = Buffer.from(expectedHex, 'hex');
+  return v1Signatures.some((candidate) => {
     try {
-      return crypto.timingSafeEqual(Buffer.from(candidate, 'hex'), Buffer.from(expected, 'hex'));
+      const candidateBuffer = Buffer.from(candidate, 'hex');
+      if (candidateBuffer.length !== expectedBuffer.length) return false;
+      return crypto.timingSafeEqual(candidateBuffer, expectedBuffer);
     } catch {
       return false;
     }
@@ -37,8 +66,8 @@ function verifyStripeSignature(rawBody, signature, secret, toleranceSeconds = 30
 }
 
 function readRawBody(event) {
-  if (!event?.body) return '';
-  return event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString('utf8') : event.body;
+  if (!event?.body) return Buffer.from('');
+  return event.isBase64Encoded ? Buffer.from(event.body, 'base64') : Buffer.from(event.body, 'utf8');
 }
 
 exports.handler = async function handler(event) {
@@ -50,16 +79,17 @@ exports.handler = async function handler(event) {
 
   const signature = event.headers['stripe-signature'] || event.headers['Stripe-Signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const toleranceSeconds = Number(process.env.STRIPE_WEBHOOK_TOLERANCE_SECONDS || 300);
   const rawBody = readRawBody(event);
 
-  if (!verifyStripeSignature(rawBody, signature, webhookSecret)) {
+  if (!verifyStripeSignature(rawBody, signature, webhookSecret, toleranceSeconds)) {
     logError('invalid stripe signature', { requestId });
     return jsonResponse(400, { error: 'Invalid signature' }, requestId);
   }
 
   let stripeEvent;
   try {
-    stripeEvent = JSON.parse(rawBody);
+    stripeEvent = JSON.parse(rawBody.toString('utf8'));
   } catch {
     return jsonResponse(400, { error: 'Invalid JSON payload' }, requestId);
   }
@@ -133,4 +163,4 @@ exports.handler = async function handler(event) {
   }
 };
 
-module.exports = { verifyStripeSignature, readRawBody };
+module.exports = { verifyStripeSignature, readRawBody, parseStripeSignature };

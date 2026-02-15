@@ -20,7 +20,14 @@ function jsonResponse(statusCode, payload, requestId) {
 }
 
 function getClientIp(event) {
-  const value = event?.headers?.['x-forwarded-for'] || event?.headers?.['X-Forwarded-For'] || 'unknown';
+  const headers = event?.headers || {};
+  const value =
+    headers['x-nf-client-connection-ip'] ||
+    headers['X-Nf-Client-Connection-Ip'] ||
+    headers['x-forwarded-for'] ||
+    headers['X-Forwarded-For'] ||
+    'unknown';
+
   return String(value).split(',')[0].trim() || 'unknown';
 }
 

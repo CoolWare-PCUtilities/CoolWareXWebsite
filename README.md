@@ -7,16 +7,13 @@ Static Netlify site for CoolWareX with Netlify Functions for Stripe webhook fulf
 - Netlify Functions (Node.js 20)
 - Netlify Blobs stores for licenses, idempotency, and rate limits
 
-## Local development (Windows friendly)
+## Local development (Windows)
 1. Install **Node.js 20.x** and npm.
-2. Install Netlify CLI globally (or use npx):
-   ```powershell
-   npm install -g netlify-cli
-   ```
-3. Install dependencies:
+2. Install dependencies:
    ```powershell
    npm ci
    ```
+3. Copy `.env.example` to `.env` and fill in required secrets.
 4. Run local Netlify dev:
    ```powershell
    npm run dev
@@ -24,10 +21,11 @@ Static Netlify site for CoolWareX with Netlify Functions for Stripe webhook fulf
 5. Open the URL shown by Netlify CLI (usually `http://localhost:8888`).
 
 ## Required environment variables
-Set these in Netlify (Site settings → Environment variables) and locally in `.env` for `netlify dev`.
+Set these in Netlify (Site settings → Environment variables) and locally in `.env` for `npm run dev`.
 
 ### Licensing and webhook
 - `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret (`whsec_...`)
+- `STRIPE_WEBHOOK_TOLERANCE_SECONDS` - optional webhook timestamp tolerance (defaults to `300`)
 - `LICENSE_SIGNING_SSH_PRIVATE_KEY_B64` - Base64-encoded Ed25519 OpenSSH private key for license signing
 
 ### Email delivery
@@ -69,10 +67,9 @@ Netlify Blobs site token/config is managed by Netlify runtime. Functions use the
 ## CI
 GitHub Actions workflow (`.github/workflows/ci.yml`) runs on `windows-latest` with Node 20 and executes:
 - `npm ci`
-- `npm test`
-- `npm run lint`
+- `node --test`
 
 ## Commands
-- `npm run dev` - run local Netlify site/functions
+- `npm run dev` - run local Netlify site/functions via local CLI
 - `npm test` - run Node.js unit tests
 - `npm run lint` - syntax/lint checks for repository JavaScript files

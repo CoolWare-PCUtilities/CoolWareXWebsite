@@ -1,19 +1,33 @@
 const { getStore } = require('@netlify/blobs');
 
+function createStore(name) {
+  try {
+    return getStore(name);
+  } catch (error) {
+    const guidance = [
+      `Unable to initialize Netlify Blobs store "${name}".`,
+      'For local development, run functions with Netlify CLI (`npm run dev`) so NETLIFY_* and BLOBS environment variables are injected.',
+      'If running outside Netlify CLI/runtime, configure the required Netlify Blobs environment variables first.',
+      `Original error: ${error.message}`
+    ].join(' ');
+    throw new Error(guidance);
+  }
+}
+
 function getLicenseStore() {
-  return getStore('licenses');
+  return createStore('licenses');
 }
 
 function getRateLimitStore() {
-  return getStore('rate_limits');
+  return createStore('rate_limits');
 }
 
 function getUpdatesStore() {
-  return getStore('updates');
+  return createStore('updates');
 }
 
 function getWebhookEventStore() {
-  return getStore('webhook_events');
+  return createStore('webhook_events');
 }
 
 async function saveFulfillment(record) {
@@ -22,12 +36,15 @@ async function saveFulfillment(record) {
   const emailKey = `email:${record.email_hash}:${record.created_at}:${record.session_id}`;
 
   await store.set(sessionKey, JSON.stringify(record));
-  await store.set(emailKey, JSON.stringify({
-    order_id: record.order_id,
-    product: record.product,
-    created_at: record.created_at,
-    license_key: record.license_key
-  }));
+  await store.set(
+    emailKey,
+    JSON.stringify({
+      order_id: record.order_id,
+      product: record.product,
+      created_at: record.created_at,
+      license_key: record.license_key
+    })
+  );
 }
 
 module.exports = {

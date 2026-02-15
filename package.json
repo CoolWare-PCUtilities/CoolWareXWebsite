@@ -14,5 +14,8 @@
     "@netlify/blobs": "^8.1.0",
     "sshpk": "^1.18.0",
     "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "netlify-cli": "file:vendor/netlify-cli"
   }
 }
