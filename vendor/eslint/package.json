@@ -1,0 +1,7 @@
+{
+  "name": "eslint",
+  "version": "0.0.0-local",
+  "bin": {
+    "eslint": "bin/eslint.js"
+  }
+}

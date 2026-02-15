@@ -3,12 +3,12 @@ const { getLicenseStore, getRateLimitStore } = require('./lib/store');
 const { jsonResponse, getRequestId, getClientIp } = require('./lib/http');
 const { consumeRateLimit } = require('./lib/rate-limit');
 const { isValidEmail } = require('./lib/validation');
-const { sendLicenseLookupEmail } = require('./lib/email');
+const { sendLicenseEmail } = require('./lib/email');
 const { logInfo, logError } = require('./lib/logging');
 
-const WINDOW_MS = 60 * 60 * 1000;
-const MAX_ATTEMPTS = 10;
-const SAFE_MESSAGE = 'If a purchase exists, an email has been sent.';
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+const RATE_LIMIT_MAX_ATTEMPTS = 10;
+const SAFE_MESSAGE = 'If a matching purchase exists, an email has been sent.';
 
 exports.handler = async function handler(event) {
   const requestId = getRequestId(event);
@@ -29,46 +29,44 @@ exports.handler = async function handler(event) {
 
   try {
     const rateStore = getRateLimitStore();
-    const rateKey = `lookup:${sha256Hex(ip)}:${sha256Hex(email || 'empty')}`;
-    const rate = await consumeRateLimit({
+    const ipRate = await consumeRateLimit({
       store: rateStore,
-      key: rateKey,
-      windowMs: WINDOW_MS,
-      maxAttempts: MAX_ATTEMPTS
+      key: `lookup:ip:${sha256Hex(ip)}`,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+      maxAttempts: RATE_LIMIT_MAX_ATTEMPTS
     });
 
-    if (!rate.allowed) {
-      return {
-        ...jsonResponse(429, { error: 'Too many requests. Please try again later.' }, requestId),
-        headers: {
-          'content-type': 'application/json; charset=utf-8',
-          'cache-control': 'no-store',
-          'retry-after': String(rate.retryAfterSeconds)
-        }
-      };
+    const emailHash = sha256Hex(email || 'empty');
+    const emailRate = await consumeRateLimit({
+      store: rateStore,
+      key: `lookup:email:${emailHash}`,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+      maxAttempts: RATE_LIMIT_MAX_ATTEMPTS
+    });
+
+    if (!ipRate.allowed || !emailRate.allowed) {
+      return jsonResponse(200, { ok: true, message: SAFE_MESSAGE }, requestId);
     }
 
     if (isValidEmail(email)) {
       const store = getLicenseStore();
-      const emailHash = sha256Hex(email);
-      const list = await store.list({ prefix: `email:${emailHash}:` });
+      const list = await store.list({ prefix: `email:${sha256Hex(email)}:` });
       const blobs = Array.isArray(list?.blobs) ? list.blobs : [];
       const items = await Promise.all(blobs.map((blob) => store.get(blob.key, { type: 'json' })));
 
-      const licenses = items
+      const latestLicense = items
         .filter((item) => item?.license_key)
-        .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
-        .slice(0, 5);
+        .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))[0];
 
-      if (licenses.length > 0) {
-        await sendLicenseLookupEmail({ to: email, records: licenses });
+      if (latestLicense) {
+        await sendLicenseEmail({ to: email, licenseKey: latestLicense.license_key, orderId: latestLicense.order_id || 'lookup' });
       }
     }
 
-    logInfo('license lookup completed', { requestId, ipHash: sha256Hex(ip), email });
+    logInfo('license lookup completed', { requestId, ipHash: sha256Hex(ip), emailHash: sha256Hex(email || '') });
     return jsonResponse(200, { ok: true, message: SAFE_MESSAGE }, requestId);
   } catch (error) {
-    logError('license lookup failed', { requestId, error: error.message, ipHash: sha256Hex(ip), email });
+    logError('license lookup failed', { requestId, error: error.message, ipHash: sha256Hex(ip), emailHash: sha256Hex(email || '') });
     return jsonResponse(500, { error: 'Unable to process request.' }, requestId);
   }
 };

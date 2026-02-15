@@ -24,3 +24,13 @@ test('readRawBody decodes base64 payload', () => {
   const event = { body: Buffer.from(payload, 'utf8').toString('base64'), isBase64Encoded: true };
   assert.equal(readRawBody(event).toString('utf8'), payload);
 });
+
+
+test('verifyStripeSignature rejects stale timestamp beyond tolerance', () => {
+  const secret = 'whsec_test';
+  const payload = Buffer.from('{"id":"evt_1"}', 'utf8');
+  const timestamp = Math.floor(Date.now() / 1000) - 600;
+  const sig = crypto.createHmac('sha256', secret).update(`${timestamp}.`).update(payload).digest('hex');
+  const header = `t=${timestamp},v1=${sig}`;
+  assert.equal(verifyStripeSignature(payload, header, secret, 300), false);
+});

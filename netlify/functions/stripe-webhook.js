@@ -8,6 +8,17 @@ const { markProcessedEvent } = require('./lib/idempotency');
 const { isValidEmail } = require('./lib/validation');
 const { logInfo, logError } = require('./lib/logging');
 
+const DEFAULT_TOLERANCE_SECONDS = 300;
+
+function getHeaderValue(headers, name) {
+  if (!headers || !name) return undefined;
+  const target = String(name).toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (String(key).toLowerCase() === target) return value;
+  }
+  return undefined;
+}
+
 function parseStripeSignature(signatureHeader) {
   if (!signatureHeader) return { timestamp: null, v1Signatures: [] };
 
@@ -66,7 +77,7 @@ function verifyStripeSignature(rawBodyBuffer, signatureHeader, secret, tolerance
 }
 
 function readRawBody(event) {
-  if (!event?.body) return Buffer.from('');
+  if (typeof event?.body !== 'string') return Buffer.from('');
   return event.isBase64Encoded ? Buffer.from(event.body, 'base64') : Buffer.from(event.body, 'utf8');
 }
 
@@ -77,9 +88,9 @@ exports.handler = async function handler(event) {
     return jsonResponse(405, { error: 'Method not allowed' }, requestId);
   }
 
-  const signature = event.headers['stripe-signature'] || event.headers['Stripe-Signature'];
+  const signature = getHeaderValue(event.headers, 'stripe-signature');
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  const toleranceSeconds = Number(process.env.STRIPE_WEBHOOK_TOLERANCE_SECONDS || 300);
+  const toleranceSeconds = Number(process.env.STRIPE_WEBHOOK_TOLERANCE_SECONDS || DEFAULT_TOLERANCE_SECONDS);
   const rawBody = readRawBody(event);
 
   if (!verifyStripeSignature(rawBody, signature, webhookSecret, toleranceSeconds)) {
@@ -153,7 +164,7 @@ exports.handler = async function handler(event) {
       requestId,
       eventId,
       sessionId,
-      email,
+      emailHash: sha256Hex(email),
       licenseKey: maskLicenseKey(licenseKey)
     });
     return jsonResponse(200, { ok: true }, requestId);

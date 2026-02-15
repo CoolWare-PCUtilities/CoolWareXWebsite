@@ -37,6 +37,20 @@
     </div>
   </section>
   <section class="container reveal">
+    <h2>Resend license key</h2>
+    <article class="card">
+      <p class="muted">Enter your purchase email and we will send the latest license key if a matching purchase exists.</p>
+      <form data-license-lookup-form>
+        <label for="license-lookup-email">Purchase email</label>
+        <input id="license-lookup-email" name="email" type="email" required autocomplete="email" placeholder="you@example.com">
+        <div class="btn-row" style="margin-top: 12px;">
+          <button class="btn btn-primary" type="submit" data-license-lookup-submit>Email my license key</button>
+        </div>
+      </form>
+      <p class="muted" data-license-lookup-message aria-live="polite" style="margin-top: 12px;"></p>
+    </article>
+  </section>
+  <section class="container reveal">
     <h2>FAQ</h2>
     <div class="grid-2">
       <article class="card"><h3>Refunds policy</h3><p>Refunds are reviewed case-by-case. Contact support with your purchase email and order details.</p></article>

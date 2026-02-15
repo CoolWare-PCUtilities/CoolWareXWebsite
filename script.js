@@ -63,6 +63,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
   }
 
+
+  const lookupForm = document.querySelector('[data-license-lookup-form]');
+  if (lookupForm) {
+    const submitButton = lookupForm.querySelector('[data-license-lookup-submit]');
+    const message = document.querySelector('[data-license-lookup-message]');
+    const SAFE_TEXT = 'If a matching purchase exists, an email has been sent.';
+
+    lookupForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const emailInput = lookupForm.querySelector('input[name="email"]');
+      const email = String(emailInput?.value || '').trim();
+
+      if (!email) {
+        if (message) message.textContent = 'Please enter your purchase email.';
+        return;
+      }
+
+      if (submitButton) submitButton.disabled = true;
+      if (message) message.textContent = 'Sending request...';
+
+      try {
+        const response = await fetch('/.netlify/functions/lookup-license', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        if (!response.ok) throw new Error('Request failed');
+        if (message) message.textContent = SAFE_TEXT;
+        lookupForm.reset();
+      } catch {
+        if (message) message.textContent = `${SAFE_TEXT} If you do not receive it, please contact support.`;
+      } finally {
+        if (submitButton) submitButton.disabled = false;
+      }
+    });
+  }
+
   const reveals = [...document.querySelectorAll('.reveal')];
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver((entries) => {
