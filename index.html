@@ -16,7 +16,7 @@
   <meta name="twitter:image" content="https://coolwarex.com/CoolWareXlogo.png">
   <link rel="icon" type="image/png" href="/CoolWareXlogo.png">
   <link rel="manifest" href="/site.webmanifest">
-  <script>(function(){try{var t=localStorage.getItem('cw-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+  <script>(function(){try{var t=localStorage.getItem('cw-theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t||d);}catch(e){}})();</script>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -38,7 +38,7 @@
       <h1>Premium desktop utilities with straightforward pricing and no subscription lock-in.</h1>
       <p class="lead">CoolAutoSorter is built for real workflows: fast installs, lightweight performance, and a lifetime license in one payment.</p>
       <div class="badge-row"><span class="badge">$14.99 lifetime</span><span class="badge">Direct checkout</span><span class="badge">Simple onboarding</span><span class="badge">Premium support</span></div>
-      <div class="btn-row"><a class="btn btn-primary" href="https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600" target="_blank" rel="noopener noreferrer">Buy CoolAutoSorter</a><a class="btn btn-secondary" href="/downloads/index.html">Download Trial</a></div>
+      <div class="btn-row"><a class="btn btn-primary" href="https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600" data-buy-link target="_blank" rel="noopener noreferrer">Buy CoolAutoSorter</a><a class="btn btn-secondary" href="https://github.com/CoolWare-PCUtilities/CoolAutoSorter/releases" data-trial-download target="_blank" rel="noopener noreferrer">Download Trial</a></div>
     </div>
     <aside class="card hero-card reveal">
       <h2>CoolAutoSorter</h2>
@@ -49,6 +49,7 @@
   </section>
 </main>
 <footer class="site-footer"><div class="container footer-links"><span>Support: <a href="mailto:coolwarex@proton.me">coolwarex@proton.me</a></span><span><a href="https://www.facebook.com/CoolWareX" target="_blank" rel="noopener">Facebook</a></span><span><a href="/legal/index.html">Legal</a></span></div></footer>
+<script src="/config.js"></script>
 <script src="/script.js"></script>
 </body>
 </html>

@@ -1,13 +1,31 @@
 (function initTheme() {
-  const storedTheme = localStorage.getItem('cw-theme');
+  const root = document.documentElement;
+  const savedPreference = localStorage.getItem('cw-theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  document.documentElement.setAttribute('data-theme', storedTheme || (prefersDark ? 'dark' : 'light'));
+  root.setAttribute('data-theme', savedPreference || (prefersDark ? 'dark' : 'light'));
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
+  const config = window.CW_CONFIG || {};
   const themeButton = document.querySelector('[data-theme-toggle]');
   const navToggle = document.querySelector('[data-nav-toggle]');
   const nav = document.querySelector('header nav');
+
+  if (config.BUY_URL) {
+    document.querySelectorAll('[data-buy-link]').forEach((link) => {
+      link.href = config.BUY_URL;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+    });
+  }
+
+  if (config.TRIAL_DOWNLOAD_URL) {
+    document.querySelectorAll('[data-trial-download]').forEach((link) => {
+      link.href = config.TRIAL_DOWNLOAD_URL;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+    });
+  }
 
   if (themeButton) {
     const syncThemeLabel = () => {

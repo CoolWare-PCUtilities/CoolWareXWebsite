@@ -5,35 +5,37 @@ Production-ready static marketing + sales site for **CoolWareX**.
 ## Deployment (Netlify)
 - **Build command:** none (leave empty)
 - **Publish directory:** `.`
-- **Functions directory:** `netlify/functions` (optional for advanced workflows)
-- This site works as a plain static deployment and does not require paid Netlify add-ons or secret keys to build.
+- **Functions directory:** `netlify/functions` (optional only; static site works without functions)
+- No secrets are required for a standard static deploy.
+
+## Netlify domain + HTTPS behavior
+Configured in `netlify.toml`:
+- Canonical domain: `https://coolwarex.com`
+- Redirect `www` → apex
+- Redirect `http` → `https`
+- Security headers enabled (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, CSP upgrade)
 
 ## Local preview
 ```bash
 python3 -m http.server 8080
 ```
-Then open `http://localhost:8080`.
+Then open `localhost:8080`.
 
-## Product and sales configuration
-Update these values in HTML files when pricing or links change:
+## Product and CTA configuration
+Single source of truth is in `config.js`:
+- `BUY_URL`: Stripe payment link for all **Buy CoolAutoSorter** buttons
+- `TRIAL_DOWNLOAD_URL`: GitHub Releases URL for all **Download Trial** buttons
 
-- **Buy link** (all Buy buttons should use the same URL):
-  - `https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600`
-- **Current product name:** `CoolAutoSorter`
-- **Price text:** `$14.99 lifetime`
-- **Support email:** `coolwarex@proton.me`
+Current values:
+- Buy link: `https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600`
+- Trial link: `https://github.com/CoolWare-PCUtilities/CoolAutoSorter/releases`
+- Product: `CoolAutoSorter`
+- Price: `$14.99 lifetime`
+- Support email: `coolwarex@proton.me`
 
-Primary files to edit:
-- `index.html`
-- `products/index.html`
-- `downloads/index.html`
-- `support/index.html`
-
-## Trial downloads
-- Trial page is located at `downloads/index.html`.
-- Placeholder file path: `downloads/CoolAutoSorter-trial-placeholder.txt`.
-- Replace placeholder with real binaries or a GitHub Releases link when available.
-
-## Domain and HTTPS
-- Canonical domain: `https://coolwarex.com`
-- `netlify.toml` includes redirects for `www` and `http` traffic to the secure apex domain.
+## Content map
+- Home: `index.html`
+- Products: `products/index.html`
+- Trial: `downloads/index.html`
+- Support + FAQ: `support/index.html`
+- Legal hub: `legal/index.html`
