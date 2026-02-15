@@ -27,6 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const emitThemeChange = () => {
+    window.dispatchEvent(new CustomEvent('cw-theme-change', {
+      detail: { theme: document.documentElement.getAttribute('data-theme') || 'light' }
+    }));
+  };
+
   if (themeButton) {
     const syncThemeLabel = () => {
       const dark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -36,11 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     syncThemeLabel();
+    emitThemeChange();
     themeButton.addEventListener('click', () => {
       const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
       localStorage.setItem('cw-theme', next);
       syncThemeLabel();
+      emitThemeChange();
     });
   }
 

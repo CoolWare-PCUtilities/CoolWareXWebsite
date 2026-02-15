@@ -13,6 +13,7 @@ Configured in `netlify.toml`:
 - Canonical domain: `https://coolwarex.com`
 - Redirect `www` → apex
 - Redirect `http` → `https`
+- Redirects for `/success`, `/cancel`, and `/thanks`
 - Security headers enabled (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, CSP upgrade)
 
 ## Local preview
@@ -33,9 +34,17 @@ Current values:
 - Price: `$14.99 lifetime`
 - Support email: `coolwarex@proton.me`
 
+## Community + feedback operations
+- **Community discussions moderation:** GitHub Discussions via giscus in repo `CoolWare-PCUtilities/CoolWareXWebsite`, category **General**.
+- **Feedback form submissions:** Netlify dashboard → Site → **Forms** (form name: `coolwarex-feedback`).
+- **Where to change Stripe/email/Facebook links:** update links in `config.js` and page-level quick-link/footer anchors in HTML pages (`index.html`, `community/index.html`, `feedback/index.html`, and related section pages).
+
 ## Content map
 - Home: `index.html`
 - Products: `products/index.html`
 - Trial: `downloads/index.html`
 - Support + FAQ: `support/index.html`
+- Community: `community/index.html`
+- Feedback form: `feedback/index.html`
+- Thank-you page: `thanks/index.html`
 - Legal hub: `legal/index.html`

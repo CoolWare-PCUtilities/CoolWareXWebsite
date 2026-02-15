@@ -33,6 +33,11 @@
   to = "/cancel.html"
   status = 200
 
+[[redirects]]
+  from = "/thanks"
+  to = "/thanks/index.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
