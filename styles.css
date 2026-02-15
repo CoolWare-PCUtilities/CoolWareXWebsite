@@ -127,3 +127,16 @@ body::before {
 .btn:hover { transform: translateY(-1px); }
 .btn-primary:hover { box-shadow: 0 16px 28px color-mix(in srgb, var(--accent) 35%, transparent); }
 .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+
+.quick-links { margin-top: var(--space-4); }
+.quick-link { text-decoration: none; color: var(--text); font-weight: 650; display: flex; align-items: center; min-height: 96px; border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 12%, var(--bg-elevated)), var(--bg-elevated)); }
+.giscus-shell { padding: var(--space-6); }
+.giscus-shell #giscus-thread { margin-top: var(--space-4); }
+.feedback-form { max-width: 760px; }
+.form-row { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+.form-row label { font-weight: 650; }
+.form-row input, .form-row textarea, .form-row select { width: 100%; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text); border-radius: var(--radius-sm); padding: .72rem .85rem; font: inherit; }
+.form-row textarea { resize: vertical; min-height: 140px; }
+.hidden-field { position: absolute; left: -9999px; }
+.error-text { min-height: 1.3rem; margin: var(--space-2) 0 0; color: #d73737; font-weight: 600; }
+.thanks-card { max-width: 720px; margin: var(--space-8) auto 0; }
