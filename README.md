@@ -1,50 +1,78 @@
 # CoolWareX Website
 
-Production-ready static marketing + sales site for **CoolWareX**.
+Static Netlify site for CoolWareX with Netlify Functions for Stripe webhook fulfillment, license lookup, and update subscriptions.
 
-## Deployment (Netlify)
-- **Build command:** none (leave empty)
-- **Publish directory:** `.`
-- **Functions directory:** `netlify/functions` (optional only; static site works without functions)
-- No secrets are required for a standard static deploy.
+## Stack
+- Static HTML/CSS/JS frontend
+- Netlify Functions (Node.js 20)
+- Netlify Blobs stores for licenses, idempotency, and rate limits
 
-## Netlify domain + HTTPS behavior
-Configured in `netlify.toml`:
-- Canonical domain: `https://coolwarex.com`
-- Redirect `www` → apex
-- Redirect `http` → `https`
-- Redirects for `/success`, `/cancel`, and `/thanks`
-- Security headers enabled (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, CSP upgrade)
+## Local development (Windows friendly)
+1. Install **Node.js 20.x** and npm.
+2. Install Netlify CLI globally (or use npx):
+   ```powershell
+   npm install -g netlify-cli
+   ```
+3. Install dependencies:
+   ```powershell
+   npm ci
+   ```
+4. Run local Netlify dev:
+   ```powershell
+   npm run dev
+   ```
+5. Open the URL shown by Netlify CLI (usually `http://localhost:8888`).
 
-## Local preview
-```bash
-python3 -m http.server 8080
-```
-Then open `localhost:8080`.
+## Required environment variables
+Set these in Netlify (Site settings → Environment variables) and locally in `.env` for `netlify dev`.
 
-## Product and CTA configuration
-Single source of truth is in `config.js`:
-- `BUY_URL`: Stripe payment link for all **Buy CoolAutoSorter** buttons
-- `TRIAL_DOWNLOAD_URL`: GitHub Releases URL for all **Download Trial** buttons
+### Licensing and webhook
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret (`whsec_...`)
+- `LICENSE_SIGNING_SSH_PRIVATE_KEY_B64` - Base64-encoded Ed25519 OpenSSH private key for license signing
 
-Current values:
-- Buy link: `https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600`
-- Trial link: `https://github.com/CoolWare-PCUtilities/CoolAutoSorter/releases`
-- Product: `CoolAutoSorter`
-- Price: `$14.99 lifetime`
-- Support email: `coolwarex@proton.me`
+### Email delivery
+- `EMAIL_PROVIDER` - `resend` (default) or `sendgrid`
+- `EMAIL_PROVIDER_API_KEY` - provider API key
+- `EMAIL_FROM` - optional sender, defaults to `CoolWareX <coolwarex@proton.me>`
 
-## Community + feedback operations
-- **Community discussions moderation:** GitHub Discussions via giscus in repo `CoolWare-PCUtilities/CoolWareXWebsite`, category **General**.
-- **Feedback form submissions:** Netlify dashboard → Site → **Forms** (form name: `coolwarex-feedback`).
-- **Where to change Stripe/email/Facebook links:** update links in `config.js` and page-level quick-link/footer anchors in HTML pages (`index.html`, `community/index.html`, `feedback/index.html`, and related section pages).
+### Debug endpoint
+- `DEBUG_TOKEN` - required in production for `debug-license-key` endpoint access
 
-## Content map
-- Home: `index.html`
-- Products: `products/index.html`
-- Trial: `downloads/index.html`
-- Support + FAQ: `support/index.html`
-- Community: `community/index.html`
-- Feedback form: `feedback/index.html`
-- Thank-you page: `thanks/index.html`
-- Legal hub: `legal/index.html`
+### Optional storage scopes
+Netlify Blobs site token/config is managed by Netlify runtime. Functions use these stores:
+- `licenses`
+- `webhook_events`
+- `rate_limits`
+- `updates`
+
+## License flow (high level)
+1. Customer completes Stripe Checkout.
+2. Stripe sends `checkout.session.completed` to `/.netlify/functions/stripe-webhook`.
+3. Function verifies signature against raw body, enforces idempotency by event ID, generates signed license key, stores fulfillment, and emails the key.
+4. Support lookup endpoint (`lookup-license`) accepts email and returns a safe, non-enumerating response message.
+
+## Testing webhook locally
+1. Start local site with functions:
+   ```powershell
+   npm run dev
+   ```
+2. In another terminal, forward Stripe events to local webhook using Stripe CLI:
+   ```powershell
+   stripe listen --forward-to localhost:8888/.netlify/functions/stripe-webhook
+   ```
+3. Copy the shown webhook secret into `STRIPE_WEBHOOK_SECRET`.
+4. Trigger a test event:
+   ```powershell
+   stripe trigger checkout.session.completed
+   ```
+
+## CI
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs on `windows-latest` with Node 20 and executes:
+- `npm ci`
+- `npm test`
+- `npm run lint`
+
+## Commands
+- `npm run dev` - run local Netlify site/functions
+- `npm test` - run Node.js unit tests
+- `npm run lint` - syntax/lint checks for repository JavaScript files
