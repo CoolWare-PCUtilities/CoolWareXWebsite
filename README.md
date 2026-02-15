@@ -1,75 +1,93 @@
 # CoolWareX Website
 
-Static Netlify site for CoolWareX with Netlify Functions for Stripe webhook fulfillment, license lookup, and update subscriptions.
+Static-first Netlify site for CoolWareX with optional Netlify Functions for Stripe fulfillment, license resend, and update subscriptions.
 
 ## Stack
-- Static HTML/CSS/JS frontend
+- Static HTML/CSS/JS frontend (no build required)
 - Netlify Functions (Node.js 20)
 - Netlify Blobs stores for licenses, idempotency, and rate limits
 
-## Local development (Windows)
-1. Install **Node.js 20.x** and npm.
+## Local development (Windows/GitHub Actions friendly)
+1. Install **Node.js 20.x** (or use `.nvmrc`).
 2. Install dependencies:
    ```powershell
    npm ci
    ```
-3. Copy `.env.example` to `.env` and fill in required secrets.
-4. Run local Netlify dev:
+3. Copy `.env.example` to `.env` and fill values as needed.
+4. Start Netlify local development:
    ```powershell
    npm run dev
    ```
-5. Open the URL shown by Netlify CLI (usually `http://localhost:8888`).
 
-## Required environment variables
-Set these in Netlify (Site settings → Environment variables) and locally in `.env` for `npm run dev`.
+`netlify dev` can pull environment variables from your Netlify site and also reads local `.env` values.
 
-### Licensing and webhook
-- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret (`whsec_...`)
-- `STRIPE_WEBHOOK_TOLERANCE_SECONDS` - optional webhook timestamp tolerance (defaults to `300`)
-- `LICENSE_SIGNING_SSH_PRIVATE_KEY_B64` - Base64-encoded Ed25519 OpenSSH private key for license signing
+## Functions (optional)
+- `/.netlify/functions/stripe-webhook`: verifies Stripe webhook signatures, enforces idempotency, issues a CoolAutoSorter lifetime key, and emails it.
+- `/.netlify/functions/lookup-license`: accepts an email and sends the most recent matching license key by email using a generic non-enumerating response.
+- `/.netlify/functions/subscribe-updates`: stores update subscription requests by product/email hash.
 
-### Email delivery
-- `EMAIL_PROVIDER` - `resend` (default) or `sendgrid`
-- `EMAIL_PROVIDER_API_KEY` - provider API key
-- `EMAIL_FROM` - optional sender, defaults to `CoolWareX <coolwarex@proton.me>`
+### Required environment variables
+- `STRIPE_WEBHOOK_SECRET`
+- `LICENSE_SIGNING_SSH_PRIVATE_KEY_B64`
+- `EMAIL_PROVIDER`
+- `EMAIL_PROVIDER_API_KEY`
+- `EMAIL_FROM`
+- `DEBUG_TOKEN`
+- `NODE_ENV`
 
-### Debug endpoint
-- `DEBUG_TOKEN` - required in production for `debug-license-key` endpoint access
-
-### Optional storage scopes
-Netlify Blobs site token/config is managed by Netlify runtime. Functions use these stores:
-- `licenses`
-- `webhook_events`
-- `rate_limits`
-- `updates`
-
-## License flow (high level)
-1. Customer completes Stripe Checkout.
-2. Stripe sends `checkout.session.completed` to `/.netlify/functions/stripe-webhook`.
-3. Function verifies signature against raw body, enforces idempotency by event ID, generates signed license key, stores fulfillment, and emails the key.
-4. Support lookup endpoint (`lookup-license`) accepts email and returns a safe, non-enumerating response message.
-
-## Testing webhook locally
-1. Start local site with functions:
-   ```powershell
-   npm run dev
-   ```
-2. In another terminal, forward Stripe events to local webhook using Stripe CLI:
-   ```powershell
-   stripe listen --forward-to localhost:8888/.netlify/functions/stripe-webhook
-   ```
-3. Copy the shown webhook secret into `STRIPE_WEBHOOK_SECRET`.
-4. Trigger a test event:
-   ```powershell
-   stripe trigger checkout.session.completed
-   ```
-
-## CI
-GitHub Actions workflow (`.github/workflows/ci.yml`) runs on `windows-latest` with Node 20 and executes:
-- `npm ci`
-- `node --test`
+Optional:
+- `STRIPE_WEBHOOK_TOLERANCE_SECONDS` (defaults to `300`)
 
 ## Commands
-- `npm run dev` - run local Netlify site/functions via local CLI
-- `npm test` - run Node.js unit tests
-- `npm run lint` - syntax/lint checks for repository JavaScript files
+- `npm run dev` - run local Netlify site/functions
+- `npm run lint` - ESLint checks for site script, functions, and tests
+- `npm test` - Node built-in test runner
+- `npm run format` - Prettier write
+- `npm run format:check` - Prettier check
+
+
+## Troubleshooting Deploy Preview "Not Found"
+If a Netlify Deploy Preview shows a default "Not Found" page, check:
+- The Deploy Preview build log and confirm **Publishing directory** points to a folder containing `index.html`.
+- Deploy Previews are enabled in Netlify site settings.
+
+Local checks:
+```powershell
+npm ci
+npm test
+node scripts/verify-publish.mjs
+npx netlify dev
+```
+`npx netlify dev` is optional, but helpful to validate local static routing and functions behavior.
+
+
+## Manual Deploy Preview (No GitHub Actions)
+Use this flow when Actions minutes are unavailable and you want a preview deploy directly from your local machine (Windows-friendly).
+
+1. Install dependencies:
+   ```powershell
+   npm ci
+   ```
+2. Run tests:
+   ```powershell
+   npm test
+   ```
+3. Run repository checks:
+   ```powershell
+   npm run doctor
+   ```
+4. Set required Netlify environment variables in your shell:
+   ```powershell
+   $env:NETLIFY_AUTH_TOKEN = "<your-token>"
+   $env:NETLIFY_SITE_ID = "<your-site-id>"
+   ```
+5. Deploy preview:
+   ```powershell
+   npm run deploy:preview
+   ```
+
+The deploy script validates publish output first and prints the final preview URL when deployment succeeds.
+
+### Troubleshooting
+- If preview shows **Not Found**, check Netlify deploy/build logs and confirm **Publishing directory** points to the folder containing `index.html`.
+- If preview is missing entirely, confirm Deploy Previews are enabled in Netlify and the repository is connected to the correct Netlify site.

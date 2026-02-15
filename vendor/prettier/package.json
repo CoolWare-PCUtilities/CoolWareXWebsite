@@ -1,0 +1,7 @@
+{
+  "name": "prettier",
+  "version": "0.0.0-local",
+  "bin": {
+    "prettier": "bin/prettier.js"
+  }
+}
