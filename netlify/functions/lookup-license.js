@@ -3,11 +3,12 @@ const { getLicenseStore, getRateLimitStore } = require('./lib/store');
 const { jsonResponse, getRequestId, getClientIp } = require('./lib/http');
 const { consumeRateLimit } = require('./lib/rate-limit');
 const { isValidEmail } = require('./lib/validation');
+const { sendLicenseLookupEmail } = require('./lib/email');
 const { logInfo, logError } = require('./lib/logging');
 
 const WINDOW_MS = 60 * 60 * 1000;
 const MAX_ATTEMPTS = 10;
-const SAFE_MESSAGE = 'If a matching license exists, it has been returned.';
+const SAFE_MESSAGE = 'If a purchase exists, an email has been sent.';
 
 exports.handler = async function handler(event) {
   const requestId = getRequestId(event);
@@ -47,28 +48,25 @@ exports.handler = async function handler(event) {
       };
     }
 
-    if (!isValidEmail(email)) {
-      return jsonResponse(200, { found: false, licenses: [], message: SAFE_MESSAGE }, requestId);
+    if (isValidEmail(email)) {
+      const store = getLicenseStore();
+      const emailHash = sha256Hex(email);
+      const list = await store.list({ prefix: `email:${emailHash}:` });
+      const blobs = Array.isArray(list?.blobs) ? list.blobs : [];
+      const items = await Promise.all(blobs.map((blob) => store.get(blob.key, { type: 'json' })));
+
+      const licenses = items
+        .filter((item) => item?.license_key)
+        .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
+        .slice(0, 5);
+
+      if (licenses.length > 0) {
+        await sendLicenseLookupEmail({ to: email, records: licenses });
+      }
     }
 
-    const store = getLicenseStore();
-    const emailHash = sha256Hex(email);
-    const list = await store.list({ prefix: `email:${emailHash}:` });
-    const blobs = Array.isArray(list?.blobs) ? list.blobs : [];
-    const items = await Promise.all(blobs.map((blob) => store.get(blob.key, { type: 'json' })));
-
-    const licenses = items
-      .filter(Boolean)
-      .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
-      .slice(0, 5);
-
     logInfo('license lookup completed', { requestId, ipHash: sha256Hex(ip), email });
-
-    return jsonResponse(200, {
-      found: licenses.length > 0,
-      licenses,
-      message: SAFE_MESSAGE
-    }, requestId);
+    return jsonResponse(200, { ok: true, message: SAFE_MESSAGE }, requestId);
   } catch (error) {
     logError('license lookup failed', { requestId, error: error.message, ipHash: sha256Hex(ip), email });
     return jsonResponse(500, { error: 'Unable to process request.' }, requestId);
