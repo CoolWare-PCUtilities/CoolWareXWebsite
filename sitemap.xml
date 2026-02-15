@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://coolwarex.netlify.app/</loc></url>
-  <url><loc>https://coolwarex.netlify.app/products/</loc></url>
-  <url><loc>https://coolwarex.netlify.app/support/</loc></url>
-  <url><loc>https://coolwarex.netlify.app/support/customer-support.html</loc></url>
-  <url><loc>https://coolwarex.netlify.app/legal/</loc></url>
-  <url><loc>https://coolwarex.netlify.app/legal/privacy-policy.html</loc></url>
-  <url><loc>https://coolwarex.netlify.app/legal/terms-of-service.html</loc></url>
-  <url><loc>https://coolwarex.netlify.app/success</loc></url>
-  <url><loc>https://coolwarex.netlify.app/cancel</loc></url>
+  <url><loc>https://coolwarex.com/</loc></url>
+  <url><loc>https://coolwarex.com/products/</loc></url>
+  <url><loc>https://coolwarex.com/downloads/</loc></url>
+  <url><loc>https://coolwarex.com/support/</loc></url>
+  <url><loc>https://coolwarex.com/support/customer-support.html</loc></url>
+  <url><loc>https://coolwarex.com/legal/</loc></url>
+  <url><loc>https://coolwarex.com/legal/eula.html</loc></url>
+  <url><loc>https://coolwarex.com/legal/privacy-policy.html</loc></url>
+  <url><loc>https://coolwarex.com/legal/terms-of-service.html</loc></url>
+  <url><loc>https://coolwarex.com/success</loc></url>
+  <url><loc>https://coolwarex.com/cancel</loc></url>
 </urlset>

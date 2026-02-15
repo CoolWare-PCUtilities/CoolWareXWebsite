@@ -6,6 +6,24 @@
   node_bundler = "esbuild"
 
 [[redirects]]
+  from = "https://www.coolwarex.com/*"
+  to = "https://coolwarex.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://coolwarex.com/*"
+  to = "https://coolwarex.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.coolwarex.com/*"
+  to = "https://coolwarex.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
   from = "/success"
   to = "/success.html"
   status = 200
@@ -14,3 +32,12 @@
   from = "/cancel"
   to = "/cancel.html"
   status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "upgrade-insecure-requests"
