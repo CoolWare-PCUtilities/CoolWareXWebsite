@@ -12,6 +12,10 @@ function getUpdatesStore() {
   return getStore('updates');
 }
 
+function getWebhookEventStore() {
+  return getStore('webhook_events');
+}
+
 async function saveFulfillment(record) {
   const store = getLicenseStore();
   const sessionKey = `session:${record.session_id}`;
@@ -26,4 +30,10 @@ async function saveFulfillment(record) {
   }));
 }
 
-module.exports = { getLicenseStore, getRateLimitStore, getUpdatesStore, saveFulfillment };
+module.exports = {
+  getLicenseStore,
+  getRateLimitStore,
+  getUpdatesStore,
+  getWebhookEventStore,
+  saveFulfillment
+};

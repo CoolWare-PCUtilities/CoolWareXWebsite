@@ -1,4 +1,5 @@
 const { signLicensePayload, getPublicKeyB64 } = require('./_lib/licenseSigning');
+const { jsonResponse, getRequestId } = require('./lib/http');
 
 function isAuthorized(event) {
   if (process.env.NODE_ENV !== 'production') return true;
@@ -12,7 +13,9 @@ function isAuthorized(event) {
 }
 
 exports.handler = async function handler(event) {
-  if (!isAuthorized(event)) return { statusCode: 403, body: JSON.stringify({ error: 'Forbidden' }) };
+  const requestId = getRequestId(event);
+
+  if (!isAuthorized(event)) return jsonResponse(403, { error: 'Forbidden' }, requestId);
 
   const payload = {
     product: 'CoolAutoSorter',
@@ -24,12 +27,8 @@ exports.handler = async function handler(event) {
 
   const exampleLicenseKey = signLicensePayload(payload);
 
-  return {
-    statusCode: 200,
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      derivedPublicKeyB64: getPublicKeyB64(),
-      exampleLicenseKey
-    })
-  };
+  return jsonResponse(200, {
+    derivedPublicKeyB64: getPublicKeyB64(),
+    exampleLicenseKey
+  }, requestId);
 };
