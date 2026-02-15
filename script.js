@@ -1,21 +1,8 @@
 (function initTheme() {
   const storedTheme = localStorage.getItem('cw-theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const activeTheme = storedTheme || (prefersDark ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', activeTheme);
+  document.documentElement.setAttribute('data-theme', storedTheme || (prefersDark ? 'dark' : 'light'));
 })();
-
-function setTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('cw-theme', theme);
-}
-
-function setStatus(el, message, isError = false) {
-  if (!el) return;
-  el.textContent = message;
-  el.classList.toggle('error', isError);
-  el.classList.toggle('success', !isError);
-}
 
 document.addEventListener('DOMContentLoaded', () => {
   const themeButton = document.querySelector('[data-theme-toggle]');
@@ -27,11 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const dark = document.documentElement.getAttribute('data-theme') === 'dark';
       themeButton.textContent = dark ? '☀️' : '🌙';
       themeButton.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+      themeButton.setAttribute('title', dark ? 'Switch to light theme' : 'Switch to dark theme');
     };
+
     syncThemeLabel();
     themeButton.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      setTheme(current);
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('cw-theme', next);
       syncThemeLabel();
     });
   }
@@ -41,7 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
       nav.classList.toggle('open');
       navToggle.setAttribute('aria-expanded', String(nav.classList.contains('open')));
     });
-    nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => nav.classList.remove('open')));
+    nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
+      nav.classList.remove('open');
+      navToggle.setAttribute('aria-expanded', 'false');
+    }));
   }
 
   const reveals = [...document.querySelectorAll('.reveal')];
@@ -57,76 +50,5 @@ document.addEventListener('DOMContentLoaded', () => {
     reveals.forEach((node) => io.observe(node));
   } else {
     reveals.forEach((node) => node.classList.add('visible'));
-  }
-
-  const lookupForm = document.querySelector('[data-license-lookup-form]');
-  if (lookupForm) {
-    const status = document.querySelector('[data-lookup-status]');
-    const results = document.querySelector('[data-lookup-results]');
-    lookupForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const email = lookupForm.querySelector('input[name="email"]').value.trim();
-      if (!email) return;
-
-      setStatus(status, 'Checking for licenses...');
-      results.innerHTML = '';
-
-      try {
-        const response = await fetch('/.netlify/functions/lookup-license', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
-        });
-        const data = await response.json();
-
-        if (response.status === 429) throw new Error(data.error || 'Request limit reached.');
-        if (!response.ok) throw new Error('Request unavailable, please try again soon.');
-
-        if (!data.found || !Array.isArray(data.licenses) || data.licenses.length === 0) {
-          setStatus(status, data.message || 'If a matching license exists, it has been returned.');
-          return;
-        }
-
-        setStatus(status, `Found ${data.licenses.length} license record(s).`);
-        const list = document.createElement('ul');
-        data.licenses.forEach((item) => {
-          const li = document.createElement('li');
-          li.innerHTML = `<strong>${item.product || 'CoolAutoSorter'}</strong> · ${item.order_id}<br><code>${item.license_key}</code>`;
-          list.appendChild(li);
-        });
-        results.appendChild(list);
-      } catch (error) {
-        setStatus(status, error.message, true);
-      }
-    });
-  }
-
-  const updatesForm = document.querySelector('[data-updates-form]');
-  if (updatesForm) {
-    const updatesStatus = document.querySelector('[data-updates-status]');
-    updatesForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const email = updatesForm.querySelector('input[name="email"]').value.trim();
-      setStatus(updatesStatus, 'Submitting...');
-      try {
-        const response = await fetch('/.netlify/functions/subscribe-updates', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
-        });
-        const data = await response.json();
-        if (!response.ok || !data.ok) throw new Error(data.error || 'Unable to subscribe right now.');
-        setStatus(updatesStatus, 'Thanks — you are on the CoolClipboard updates list.');
-        updatesForm.reset();
-      } catch (error) {
-        setStatus(updatesStatus, error.message, true);
-      }
-    });
-  }
-
-  const successSession = document.querySelector('[data-success-session]');
-  if (successSession) {
-    const sessionId = new URLSearchParams(window.location.search).get('session_id');
-    if (sessionId) successSession.textContent = `Order reference: ${sessionId}`;
   }
 });

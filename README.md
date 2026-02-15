@@ -1,75 +1,39 @@
 # CoolWareX Website
 
-Static Netlify site + Netlify Functions for **CoolAutoSorter** fulfillment and support flows.
+Production-ready static marketing + sales site for **CoolWareX**.
 
-## Stack
-- Static HTML/CSS/vanilla JS
-- Netlify Functions (`netlify/functions`)
-- Netlify Blobs for fulfillment records + lookup + update subscriptions
+## Deployment (Netlify)
+- **Build command:** none (leave empty)
+- **Publish directory:** `.`
+- **Functions directory:** `netlify/functions` (optional for advanced workflows)
+- This site works as a plain static deployment and does not require paid Netlify add-ons or secret keys to build.
 
-## Local development
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Set env vars in `.env` for local dev, and in the Netlify UI for deployed functions.
-3. Run locally:
-   ```bash
-   npx netlify dev
-   ```
-
-## Required environment variables
-- `SITE_URL` (e.g. `https://coolwarex.netlify.app`)
-- `STRIPE_WEBHOOK_SECRET`
-- `LICENSE_SIGNING_SSH_PRIVATE_KEY_B64`
-- `EMAIL_PROVIDER` (`resend` or `sendgrid`)
-- `EMAIL_PROVIDER_API_KEY`
-- `EMAIL_FROM` (e.g. `CoolWareX <coolwarex@proton.me>`)
-- `SUPPORT_EMAIL` (`coolwarex@proton.me`)
-
-### `LICENSE_SIGNING_SSH_PRIVATE_KEY_B64` format
-This value is **base64 of the raw bytes of your OpenSSH private key file** (for example `~/.ssh/id_ed25519`).
-
-Example:
+## Local preview
 ```bash
-base64 < ~/.ssh/id_ed25519 | tr -d '\n'
+python3 -m http.server 8080
 ```
+Then open `http://localhost:8080`.
 
-At runtime, functions parse this OpenSSH key, derive the Ed25519 signing secret, and expose the raw public key as base64 via `/.netlify/functions/debug-license-key` in non-production (or with `DEBUG_TOKEN`).
+## Product and sales configuration
+Update these values in HTML files when pricing or links change:
 
-Expected public key for this app:
-- `1yYXI2GP9UUbYGozDUGof1KRQyx8WOeNeKx5aW8cgq0=`
+- **Buy link** (all Buy buttons should use the same URL):
+  - `https://buy.stripe.com/bJe14g1fqdesbrIc7w7N600`
+- **Current product name:** `CoolAutoSorter`
+- **Price text:** `$14.99 lifetime`
+- **Support email:** `coolwarex@proton.me`
 
-Use the debug endpoint response field `derivedPublicKeyB64` to confirm it matches.
+Primary files to edit:
+- `index.html`
+- `products/index.html`
+- `downloads/index.html`
+- `support/index.html`
 
-License key output format:
+## Trial downloads
+- Trial page is located at `downloads/index.html`.
+- Placeholder file path: `downloads/CoolAutoSorter-trial-placeholder.txt`.
+- Replace placeholder with real binaries or a GitHub Releases link when available.
 
-`COOLWAREX-<base64url(payload_json)>.<base64url(signature)>`
-
-Payload fields:
-- `product` (`CoolAutoSorter`)
-- `license_type` (`lifetime`)
-- `issued_at` (ISO timestamp)
-- `order_id` (Stripe Payment Link checkout session id)
-- `purchaser_email_hash` (`sha256(lowercase(trim(email)))`)
-
-## Stripe test mode flow
-1. Create/update the Stripe Payment Link used on the site for **CoolAutoSorter** at **$14.99 one-time**.
-2. Configure webhook endpoint:
-   - URL: `https://<site>/.netlify/functions/stripe-webhook`
-   - Event: `checkout.session.completed`
-3. Complete a test purchase with a Stripe test card from the Payment Link.
-4. Confirm:
-   - Redirect to `/success`
-   - webhook returns `200`
-   - fulfillment is stored idempotently by `session_id`
-   - license email is sent
-   - lookup by purchase email returns license
-
-
-## Netlify environment variable scope note
-Do **not** rely on `netlify.toml` environment variables for function runtime secrets. Set function secrets in the Netlify UI with **Functions** scope (Site configuration → Environment variables), including:
-- `LICENSE_SIGNING_SSH_PRIVATE_KEY_B64`
-- `STRIPE_WEBHOOK_SECRET`
-- `EMAIL_PROVIDER_API_KEY`
-- `DEBUG_TOKEN` (optional)
+## Domain and HTTPS
+- Canonical domain: `https://coolwarex.com`
+- `netlify.toml` includes redirects for `www` and `http` traffic to the secure apex domain.
