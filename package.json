@@ -18,11 +18,12 @@
   "dependencies": {
     "@netlify/blobs": "^8.1.0",
     "sshpk": "^1.18.0",
+    "stripe": "^20.3.1",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "netlify-cli": "file:vendor/netlify-cli",
     "eslint": "file:vendor/eslint",
+    "netlify-cli": "file:vendor/netlify-cli",
     "prettier": "file:vendor/prettier"
   }
 }
